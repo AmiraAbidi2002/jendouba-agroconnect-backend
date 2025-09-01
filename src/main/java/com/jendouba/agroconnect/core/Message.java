@@ -3,7 +3,10 @@ package com.jendouba.agroconnect.core;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-
+/**
+ * Message entity representing a message between users.
+ * Stores sender, receiver, content, and timestamp.
+ */
 @Entity
 @Table(name = "Messages")
 public class Message {
@@ -11,7 +14,7 @@ public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "msg_id")
-    private Long msg_id;
+    private Long msg_id;// Primary key: Message ID
 
     @ManyToOne
     @JoinColumn(name = "sender_id")
@@ -28,12 +31,12 @@ public class Message {
 
     public Message() {
     }
-
-    public long getMsg_id() {
+    // Getters and setters
+    public Long getMsg_id() {
         return msg_id;
     }
 
-    public void setMsg_id(long msg_id) {
+    public void setMsg_id(Long msg_id) {
         this.msg_id = msg_id;
     }
 

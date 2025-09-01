@@ -5,14 +5,17 @@ import jakarta.validation.constraints.NotEmpty;
 
 import javax.security.auth.Subject;
 import java.security.Principal;
-
+/**
+ * User entity representing an application user.
+ * Implements Principal to integrate with Java security frameworks.
+ */
 @Entity
 @Table(name = "Users")
 public class User implements Principal {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long user_id;
+    private Long user_id;// Primary key: User ID
 
     @Column(nullable = false)
     private String user_name;
@@ -23,7 +26,7 @@ public class User implements Principal {
 
     @Column(nullable = false)
     @NotEmpty(message = "User type is required")
-    private String  user_type;
+    private String  user_type;// Type of user (e.g., farmer, buyer)
 
     @NotEmpty(message = "location is required")
     @Column(nullable = false)
@@ -39,7 +42,7 @@ public class User implements Principal {
         this.user_type = user_type;
         this.location = location;
     }
-
+    // Getters and setters
     public Long getUser_id() {
         return user_id;
     }

@@ -4,30 +4,37 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Project coordinates -->
     <groupId>com.jendouba.agroconnect</groupId>
     <artifactId>jendouba_agroconnect_backend</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+
+    <!-- Java compiler settings -->
     <properties>
         <maven.compiler.source>20</maven.compiler.source>
         <maven.compiler.target>20</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <!-- Dropwizard Core -->
+
+    <!-- Dependencies -->
     <dependencies>
+        <!-- Dropwizard Core -->
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-core</artifactId>
             <version>4.0.15</version>
         </dependency>
 
+        <!-- Jetty for embedded server -->
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-jetty</artifactId>
             <version>4.0.15</version>
         </dependency>
 
+        <!-- JSON library -->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
@@ -35,7 +42,7 @@
         </dependency>
 
 
-        <!-- Dropwizard Hibernate -->
+        <!-- Dropwizard Hibernate for ORM -->
         <!-- https://mvnrepository.com/artifact/io.dropwizard/dropwizard-hibernate -->
         <dependency>
             <groupId>io.dropwizard</groupId>
@@ -43,9 +50,7 @@
             <version>4.0.15</version>
         </dependency>
 
-        <!-- JWT Authentication  -->
-
-
+        <!-- JWT Authentication support -->
         <!-- https://mvnrepository.com/artifact/io.dropwizard/dropwizard-auth -->
         <dependency>
             <groupId>io.dropwizard</groupId>
@@ -60,7 +65,7 @@
             <version>4.5.0</version>
         </dependency>
 
-        <!-- PostgreSQL Driver -->
+        <!-- PostgreSQL JDBC Driver -->
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -82,6 +87,7 @@
             <version>3.0.2</version>
         </dependency>
 
+        <!-- Servlet & JAX-RS APIs -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -96,7 +102,7 @@
 
 
 
-        <!-- Jackson pour JSON   -->
+        <!-- Jackson pour JSON  processing -->
 
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
@@ -116,26 +122,49 @@
             <version>2.16.1</version>
         </dependency>
 
+        <!-- Jetty servlets -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
             <version>11.0.15</version>
-
         </dependency>
 
+        <!-- Jersey multipart support for file uploads -->
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
             <version>3.1.0</version>
         </dependency>
 
+        <!-- Jersey MVC support (JSP / Mustache templates) -->
+        <dependency>
+            <groupId>org.glassfish.jersey.ext</groupId>
+            <artifactId>jersey-mvc-jsp</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.ext</groupId>
+            <artifactId>jersey-mvc-mustache</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+
+        <!-- Jersey servlet container -->
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+        <!-- Dropwizard forms support -->
         <dependency>
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-forms</artifactId>
             <version>4.0.15</version>
         </dependency>
 
-
+        <!-- BCrypt password hashing -->
         <dependency>
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
@@ -143,8 +172,7 @@
         </dependency>
 
 
-        <!-- HTTP client pour API météo  -->
-
+        <!-- HTTP client pour API weather  -->
         <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5 -->
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
@@ -153,7 +181,7 @@
         </dependency>
 
 
-        <!-- Test  -->
+        <!-- Dropwizard Testing  -->
         <!-- https://mvnrepository.com/artifact/io.dropwizard/dropwizard-testing -->
         <dependency>
             <groupId>io.dropwizard</groupId>
@@ -162,9 +190,37 @@
             <scope>test</scope>
         </dependency>
 
+            <!-- JUnit 5 -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>5.10.0</version>
+                <scope>test</scope>
+            </dependency>
+
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+            <scope>test</scope>
+        </dependency>
+
+
+
     </dependencies>
+
+    <!-- Build plugins -->
     <build>
         <plugins>
+            <!-- Configure executable JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -179,6 +235,7 @@
                 </configuration>
             </plugin>
 
+            <!-- Shade plugin for building fat/uber JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -210,6 +267,20 @@
                     </execution>
                 </executions>
             </plugin>
+
+                    <plugin>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.2.5</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                                <include>**/*Tests.java</include>
+                                <include>**/*IT.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+
+
         </plugins>
     </build>
 

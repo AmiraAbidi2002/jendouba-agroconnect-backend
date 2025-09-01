@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 
 import java.util.Date;
 
-
+/**
+ * Crop entity representing a crop in the database.
+ * Stores information about crop name, type, quantity, price, availability, harvest date, and associated farmer.
+ */
 @Entity
 @Table(name = "Crops")
 public class Crop {
@@ -12,11 +15,11 @@ public class Crop {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "crop_id")
-    private Long crop_id;
+    private Long crop_id;// Primary key: Crop ID
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "farmer_id",nullable = false)
-    private User farmer;
+    private User farmer;// Farmer who owns this crop
     @Column(name = "crop_name",nullable = false)
     private  String crop_name;
     @Column(name = "quantity",nullable = false)
@@ -34,9 +37,21 @@ public class Crop {
     @Column(name = "price",nullable = false)
     private Double price;
 
-    public Crop() {
+    public Crop(Long crop_id, User farmer, String crop_name, Double quantity, String crop_type, Date harvest_date, boolean availability, String image_url, Double price) {
+        this.crop_id = crop_id;
+        this.farmer = farmer;
+        this.crop_name = crop_name;
+        this.quantity = quantity;
+        this.crop_type = crop_type;
+        this.harvest_date = harvest_date;
+        this.availability = availability;
+        this.image_url = image_url;
+        this.price = price;
     }
 
+    public Crop() {
+    }
+    // Getters and setters
     public long getCrop_id() {
         return crop_id;
     }

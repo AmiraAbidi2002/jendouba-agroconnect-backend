@@ -10,234 +10,337 @@ import io.dropwizard.hibernate.UnitOfWork;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.checkerframework.checker.units.qual.C;
+import jakarta.ws.rs.core.StreamingOutput;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-@Path("/api/crops")
+
+/**
+ * Resource handling all CRUD operations on crops.
+ * Supports creating, updating, deleting, and fetching crops.
+ */
+@Path("api/crops")
+@Produces(MediaType.APPLICATION_JSON)
 public class CropResource {
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+    private static final Logger LOGGER = LoggerFactory.getLogger(CropResource.class);
 
     private final CropDAO cropDAO;
     private final UserDAO userDAO;
-    private static final String UPLOAD_DIR = "uploads/";
 
     public CropResource(CropDAO cropDAO, UserDAO userDAO) {
         this.cropDAO = cropDAO;
-        this.userDAO = userDAO;
-        // create the upload directory
-        try {
-            Files.createDirectories(Paths.get(UPLOAD_DIR));
-        } catch (IOException e) {
-            System.err.println("Cannot create upload directory: " + e.getMessage());
+        this.userDAO=userDAO;
+    }
+
+    /**
+     * save  file  in  uploads directory
+     */
+    private String saveFile(InputStream fileStream) throws IOException {
+        // Generate a unique file name
+        String fileName = UUID.randomUUID().toString() ;
+
+        // Create the uploads folder if it does not exist
+        File uploadDir = new File("uploads");
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
         }
+
+        // Save the file
+        File file = new File(uploadDir, fileName);
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = fileStream.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }
+
+        return fileName; // Returns the file name for the DB
     }
 
-    @OPTIONS
-    @Path("{path: .*}")
-    public Response handleOptions() {
-        return Response.ok()
-                .header("Access-Control-Allow-Origin", "http://localhost:5173")
-                .header("Access-Control-Allow-Headers", "X-Requested-With,Content-Type,Accept,Origin,Authorization,Content-Disposition")
-                .header("Access-Control-Allow-Methods", "OPTIONS,GET,PUT,POST,DELETE,HEAD")
-                .header("Access-Control-Allow-Credentials", "true")
-                .build();
+    /**
+     * Get all crops (from all farmers)
+     */
+    @GET
+    @UnitOfWork
+    public Response getAllCrops() {
+        List<Crop> crops = cropDAO.findAll();
+        // Convert to DTO to include farmer_id
+        List<CropDTO> cropDTOs = crops.stream()
+                .map(CropDTO::new)
+                .collect(Collectors.toList());
+        return Response.ok(cropDTOs).build();
     }
 
+    /**
+     * Get MY crops only (logged-in farmer)
+     */
+    @GET
+    @Path("/mine")
+    @UnitOfWork
+    public Response getMyCrops(@Auth User user) {
+        if (user == null) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity("{\"message\":\"Unauthorized - invalid or missing token\"}")
+                    .build();
+        }
+        List<Crop> crops = cropDAO.findByFarmerId(user.getUser_id());
+        // Convert to DTO
+        List<CropDTO> cropDTOs = crops.stream()
+                .map(CropDTO::new)
+                .collect(Collectors.toList());
+        return Response.ok(cropDTOs).build();
+    }
+
+    /**
+     * Create a new crop for the authenticated farmer.
+     * Handles multipart form data for crop attributes and optional image upload.
+     */
     @POST
     @UnitOfWork
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response createCrop(
-            @Auth User user,
-            @FormDataParam("crop_name") String cropName,
-            @FormDataParam("crop_type") String cropType,
-            @FormDataParam("quantity") String quantityStr,
-            @FormDataParam("price") String priceStr,
-            @FormDataParam("harvest_date") String harvestDateStr,
-            @FormDataParam("availability") String availabilityStr,
-            @FormDataParam("image") InputStream uploadedInputStream,
-            @FormDataParam("image") FormDataContentDisposition fileDetail) {
-
+    public Response createCrop(@Auth User user,
+                               @FormDataParam("crop_name") String cropName,
+                               @FormDataParam("crop_type") String cropType,
+                               @FormDataParam("quantity") String quantityStr,
+                               @FormDataParam("price") String priceStr,
+                               @FormDataParam("harvest_date") String harvestDateStr,
+                               @FormDataParam("availability") String availabilityStr,
+                               @FormDataParam("image") InputStream imageStream) {
         try {
-            Double quantity ;
-            Double price ;
-            try {
-                quantity = Double.parseDouble(quantityStr);
-                price = Double.parseDouble(priceStr);
-            } catch (NumberFormatException e) {
-                System.out.println("❌ NUMBER FORMAT ERROR: " + e.getMessage());
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("{\"message\": \"Invalid number format\"}")
-                        .build();
-            }
-            Boolean availability = availabilityStr != null ? Boolean.parseBoolean(availabilityStr) : true;
-
-            // Validation
-            if (cropName == null || cropType == null || quantity == null || price == null || harvestDateStr == null) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("{\"message\": \"Missing required fields\"}")
+            if (user == null) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity("{\"message\":\"Unauthorized - invalid or missing token\"}")
                         .build();
             }
 
+            LOGGER.info("Creating crop for user_id=" + user.getUser_id());
 
             Crop crop = new Crop();
             crop.setCrop_name(cropName);
             crop.setCrop_type(cropType);
-            crop.setQuantity(quantity);
-            crop.setPrice(price);
-            crop.setAvailability(availability != null ? availability : true);
-            crop.setHarvest_date(java.sql.Date.valueOf(harvestDateStr));
+
+            if (quantityStr != null) crop.setQuantity(Double.parseDouble(quantityStr));
+            if (priceStr != null) crop.setPrice(Double.parseDouble(priceStr));
+
+            // Parse harvest date
+            if (harvestDateStr != null && !harvestDateStr.isEmpty()) {
+                try {
+                    Date harvestDate = DATE_FORMAT.parse(harvestDateStr);
+                    crop.setHarvest_date(harvestDate);
+                } catch (ParseException e) {
+                    LOGGER.error("Invalid date format: " + harvestDateStr, e);
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity("{\"message\":\"Invalid date format. Use YYYY-MM-DD\"}")
+                            .build();
+                }
+            }
+
+            if (availabilityStr != null) crop.setAvailability(Boolean.parseBoolean(availabilityStr));
             crop.setFarmer(user);
 
-            // Gestion de l'image
-            if (uploadedInputStream != null && fileDetail != null &&
-                    fileDetail.getFileName() != null && !fileDetail.getFileName().isEmpty()) {
-                String fileName = saveImage(uploadedInputStream, fileDetail.getFileName());
-                crop.setImage_url(fileName);
+            // Handle image upload if present
+            if (imageStream != null) {
+                // Implement your image saving logic here
+                String imagePath = saveFile(imageStream);
+                 crop.setImage_url(imagePath);
+                LOGGER.info("Image received for crop: " + cropName);
             }
-            System.out.println("✅ Attempting to save crop...");
 
-            Crop persisted = cropDAO.create(crop);
-            System.out.println("✅ Crop saved successfully with ID: " + persisted.getCrop_id());
-            return Response.status(Response.Status.CREATED).entity(persisted).build();
+            Crop saved = cropDAO.create(crop);
+            return Response.ok(saved).build();
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Error creating crop: " + e.getMessage() + "\"}")
+            LOGGER.error("Error creating crop", e);
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Invalid input: " + e.getMessage() + "\"}")
                     .build();
         }
     }
 
-    // save image
-    private String saveImage(InputStream uploadedInputStream, String originalFileName) throws IOException {
-        String fileExtension = "";
-        if (originalFileName.contains(".")) {
-            fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-        }
-
-        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
-        java.nio.file.Path filePath = Paths.get(UPLOAD_DIR, uniqueFileName);
-
-        Files.copy(uploadedInputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-        return uniqueFileName;
-    }
-
-
-    @GET
-    @UnitOfWork
-    public List<Crop> getAllCrops() {
-        return cropDAO.findAll();
-    }
-
-    @GET
-    @Path("/{id}")
-    @UnitOfWork
-    public Response getCropById(@PathParam("id") Long id) {
-        Optional<Crop> crop = cropDAO.findById(id);
-        return crop.map(c -> Response.ok(c).build())
-                .orElseGet(() -> Response.status(Response.Status.NOT_FOUND).build());
-    }
-
+    /**
+     * Update an existing crop
+     * * Validates ownership and updates fields.
+     */
     @PUT
     @Path("/{id}")
     @UnitOfWork
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response updateCrop(
-            @Auth User user,
-            @PathParam("id") Long id,
-            @FormDataParam("crop_name") String cropName,
-            @FormDataParam("crop_type") String cropType,
-            @FormDataParam("quantity") String quantityStr,
-            @FormDataParam("price") String priceStr,
-            @FormDataParam("harvest_date") String harvestDateStr,
-            @FormDataParam("availability") String availabilityStr,
-            @FormDataParam("image") InputStream uploadedInputStream,
-            @FormDataParam("image") FormDataContentDisposition fileDetail) {
-
+    public Response updateCrop(@Auth User user,
+                               @PathParam("id") Long id,
+                               @FormDataParam("crop_name") String cropName,
+                               @FormDataParam("crop_type") String cropType,
+                               @FormDataParam("quantity") String quantityStr,
+                               @FormDataParam("price") String priceStr,
+                               @FormDataParam("harvest_date") String harvestDateStr,
+                               @FormDataParam("availability") String availabilityStr,
+                               @FormDataParam("image") InputStream imageStream) {
         try {
-
-            Optional<Crop> optionalCrop = cropDAO.findById(id);
-            if (!optionalCrop.isPresent()) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity("{\"message\": \"Crop not found\"}")
+            if (user == null) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity("{\"message\":\"Unauthorized - invalid or missing token\"}")
                         .build();
             }
 
-            // Parser les types
-            Double quantity = Double.parseDouble((quantityStr));
-            Double price = Double.parseDouble(priceStr);
-            Boolean availability = availabilityStr != null ? Boolean.parseBoolean(availabilityStr) : true;
+            LOGGER.info("Updating crop ID=" + id + " for user_id=" + user.getUser_id());
 
-
+            Optional<Crop> optionalCrop = cropDAO.findById(id);
+            if (optionalCrop.isEmpty()) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"message\":\"Crop not found\"}")
+                        .build();
+            }
 
             Crop crop = optionalCrop.get();
 
-            // Update
+            // Verify that this crop belongs to the logged-in farmer
+            if (!crop.getFarmer().getUser_id().equals(user.getUser_id())) {
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity("{\"message\":\"You are not allowed to update this crop\"}")
+                        .build();
+            }
+
+            // Update fields
             if (cropName != null) crop.setCrop_name(cropName);
             if (cropType != null) crop.setCrop_type(cropType);
-            if (quantity != null) crop.setQuantity(quantity);
-            if (price != null) crop.setPrice(price);
-            if (harvestDateStr != null) crop.setHarvest_date(java.sql.Date.valueOf(harvestDateStr));
-            if (availability != null) crop.setAvailability(availability);
+            if (quantityStr != null) crop.setQuantity(Double.parseDouble(quantityStr));
+            if (priceStr != null) crop.setPrice(Double.parseDouble(priceStr));
 
-            // image
-            if (uploadedInputStream != null && fileDetail != null &&
-                    fileDetail.getFileName() != null && !fileDetail.getFileName().isEmpty()) {
-                String fileName = saveImage(uploadedInputStream, fileDetail.getFileName());
-                crop.setImage_url(fileName);
+            if (harvestDateStr != null && !harvestDateStr.isEmpty()) {
+                try {
+                    Date harvestDate = DATE_FORMAT.parse(harvestDateStr);
+                    crop.setHarvest_date(harvestDate);
+                } catch (ParseException e) {
+                    LOGGER.error("Invalid date format: " + harvestDateStr, e);
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity("{\"message\":\"Invalid date format. Use YYYY-MM-DD\"}")
+                            .build();
+                }
+            }
+
+            if (availabilityStr != null) crop.setAvailability(Boolean.parseBoolean(availabilityStr));
+
+            // Handle image upload if present
+            if (imageStream != null) {
+                // Implement your image saving logic here
+                 String imagePath = saveFile(imageStream);
+                crop.setImage_url(imagePath);
+                LOGGER.info("Image updated for crop: " + cropName);
             }
 
             Crop updated = cropDAO.update(crop);
-            System.out.println("✅ Crop updated successfully: " + updated.getCrop_id());
             return Response.ok(updated).build();
 
         } catch (Exception e) {
-            System.out.println("❌ Error updating crop: " + e.getMessage());
-            e.printStackTrace();
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Error updating crop: " + e.getMessage() + "\"}")
+            LOGGER.error("Error updating crop", e);
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"message\":\"Invalid update: " + e.getMessage() + "\"}")
                     .build();
         }
     }
 
+    /**
+     * Delete a crop if it belongs to the logged-in farmer.
+     */
     @DELETE
     @Path("/{id}")
     @UnitOfWork
-    public Response deleteCrop(@PathParam("id") Long id) {
+    public Response deleteCrop(@Auth User user, @PathParam("id") Long id) {
+        if (user == null) {
+            return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity("{\"message\":\"Unauthorized - invalid or missing token\"}")
+                    .build();
+        }
+
         Optional<Crop> optionalCrop = cropDAO.findById(id);
-        if (!optionalCrop.isPresent()) {
+        if (optionalCrop.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"message\":\"Crop not found\"}")
+                    .build();
+        }
+
+        Crop crop = optionalCrop.get();
+
+        if (!crop.getFarmer().getUser_id().equals(user.getUser_id())) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity("{\"message\":\"You are not allowed to delete this crop\"}")
+                    .build();
+        }
+
+        cropDAO.delete(crop);
+        return Response.noContent().build();
+    }
+
+
+    /**
+     * Get crops for a specific farmer by their ID.
+     */
+    @GET
+    @Path("/farmer/{farmerId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @UnitOfWork
+    public Response getCropsByFarmer(@PathParam("farmerId") Long farmerId) {
+        List<Crop> crops = cropDAO.findByFarmerId(farmerId);
+
+        // Convert en DTO
+        List<CropDTO> cropDTOs = crops.stream()
+                .map(CropDTO::new)
+                .collect(Collectors.toList());
+        return Response.ok(cropDTOs).build();
+    }
+
+
+
+    @GET
+    @Path("/image/{filename}")
+    public Response getImage(@PathParam("filename") String filename) {
+        File file = new File("uploads/" + filename);
+
+        LOGGER.info("Loading image from path: " + file.getAbsolutePath());
+
+        if (!file.exists()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        cropDAO.delete(optionalCrop.get());
-        return Response.ok().build();
+        StreamingOutput stream = output -> {
+            try (var in = Files.newInputStream(file.toPath())) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    output.write(buffer, 0, bytesRead);
+                }
+            }
+        };
+
+        String mimeType;
+        if (filename.endsWith(".png")) {
+            mimeType = "image/png";
+        } else if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
+            mimeType = "image/jpeg";
+        } else if (filename.endsWith(".gif")) {
+            mimeType = "image/gif";
+        } else {
+
+            mimeType = "image/jpeg";
+        }
+        return Response.ok(stream, mimeType)
+                .header("Content-Disposition", "inline; filename=\"" + file.getName() + "\"")
+                .build();
     }
 
-    @GET
-    @Path("/farmer/{farmerId}")
-    @UnitOfWork
-    public List<CropDTO> getCropsByFarmer(@PathParam("farmerId") Long farmerId) {
-        System.out.println("Fetching crops for farmer ID: " + farmerId);
-        List<Crop> crops=cropDAO.findByFarmerId(farmerId);
-        return crops.stream().map(CropDTO::new).toList();
-
-    }
-
-
-    @GET
-    @Path("/all")
-    @UnitOfWork
-    public List<CropDTO> getAllCropsDTO() {
-        List<Crop> crops = cropDAO.findAll();
-        return crops.stream().map(CropDTO::new).toList();
-    }
 }

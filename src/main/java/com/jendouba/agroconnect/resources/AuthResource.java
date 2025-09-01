@@ -16,6 +16,9 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Resource for authentication endpoints: register and login.
+ */
 @Path("/auth")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -27,6 +30,10 @@ public class AuthResource {
         this.userDAO = userDAO;
     }
 
+    /**
+     * User registration endpoint.
+     * Validates required fields, hashes password, saves user, returns user id.
+     */
     @POST
     @Path("/register")
     @UnitOfWork
@@ -56,6 +63,10 @@ public class AuthResource {
                 .build();
     }
 
+    /**
+     * User login endpoint.
+     * Checks email/password, returns JWT token if valid, otherwise 401 Unauthorized.
+     */
     @POST
     @Path("/login")
     @UnitOfWork

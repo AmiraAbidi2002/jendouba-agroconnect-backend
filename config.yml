@@ -1,22 +1,27 @@
+# Server configuration
 server:
-  type: default
+  type: default    # Use default Jetty server
   applicationConnectors:
-    - type: http
-      port: 8080
+    - type: http     # Use HTTP connector
+      port: 8080     # Server will run on port 8080
 
 
+# Database configuration
 database:
-  driverClass: org.postgresql.Driver
-  user: agro_user
+  driverClass: org.postgresql.Driver    # PostgreSQL JDBC driver
+  user: agro_user       # Database username
   password: 12373291
-  url: jdbc:postgresql://localhost:5432/agroconnect
+  url: jdbc:postgresql://localhost:5432/agroconnect      # JDBC connection URL
   properties:
-    charSet: UTF-8
-    hibernate.hbm2ddl.auto: validate
+    charSet: UTF-8         # Character encoding
+    hibernate.hbm2ddl.auto: validate      # Validate schema on startup
   maxWaitForConnection: 1s
-  validationQuery: "SELECT 1"
+  validationQuery: "SELECT 1"       # SQL query to validate connection
   maxSize: 10
   minSize: 1
+
+
+
 
 
 

@@ -3,6 +3,7 @@ C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendo
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\auth\JwtAuthenticator.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\auth\JwtAuthFilter.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\auth\JwtUtil.java
+C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\auth\OptionsResponseFilter.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\auth\UserSecurityContext.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\core\Crop.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\core\Message.java
@@ -12,6 +13,7 @@ C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendo
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\db\UserDAO.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\dto\CropDTO.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\dto\FarmDTO.java
+C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\dto\MessageDTO.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\dto\RegisterRequest.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\resources\AuthResource.java
 C:\Users\AMIRA\IdeaProjects\jendouba_agroconnect_backend\src\main\java\com\jendouba\agroconnect\resources\CropResource.java

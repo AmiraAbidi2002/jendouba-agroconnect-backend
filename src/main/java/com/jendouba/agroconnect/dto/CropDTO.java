@@ -2,42 +2,57 @@ package com.jendouba.agroconnect.dto;
 
 import com.jendouba.agroconnect.core.Crop;
 
-import java.util.Date;
+import java.text.SimpleDateFormat;
+
+/**
+ * DTO for Crop entity.
+ * Converts Crop entity fields into a simplified structure for frontend transfer.
+ */
 
 public class CropDTO {
-    public long crop_id;
+    public Long crop_id;
     public Long farmer_id;
+    public String farmer_name;
     public String crop_name;
     public String crop_type;
     public Double quantity;
     public Double price;
-    public String harvest_date;
-
+    public String harvest_date;// Harvest date formatted as yyyy-MM-dd
     public boolean availability;
     public String img_url;
 
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
 
     public CropDTO() {
     }
 
+    /**
+     * Converts a Crop entity to a CropDTO.
+     * Formats the harvest date and includes farmer information.
+     */
     public CropDTO(Crop c) {
         this.crop_id = c.getCrop_id();
-        this.farmer_id=c.getFarmer().getUser_id();
+        this.farmer_id = c.getFarmer().getUser_id();
+        this.farmer_name=c.getFarmer().getUser_name();
         this.crop_name = c.getCrop_name();
         this.crop_type = c.getCrop_type();
         this.quantity = c.getQuantity();
         this.price = c.getPrice();
-        this.harvest_date = String.valueOf(c.getHarvest_date());
-        this.availability=c.isAvailability();
-        this.img_url = c.getImage_url();
+        this.harvest_date = c.getHarvest_date() != null ? DATE_FORMAT.format(c.getHarvest_date()) : null;
+        this.availability = c.isAvailability();
+        if (c.getImage_url() != null) {
+            this.img_url = "http://localhost:8080/api/crops/image/" + c.getImage_url();
+        } else {
+            this.img_url = null;
+        }
     }
 
+    // Getters and setters
     public long getCrop_id() {
         return crop_id;
     }
-
-    public void setCrop_id(long crop_id) {
+     public void setCrop_id(long crop_id) {
         this.crop_id = crop_id;
     }
 
@@ -96,5 +111,12 @@ public class CropDTO {
     public void setImg_url(String img_url) {
         this.img_url = img_url;
     }
-}
 
+    public String getFarmer_name() {
+        return farmer_name;
+    }
+
+    public void setFarmer_name(String farmer_name) {
+        this.farmer_name = farmer_name;
+    }
+}

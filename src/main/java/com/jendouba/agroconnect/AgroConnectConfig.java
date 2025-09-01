@@ -7,6 +7,11 @@ import io.dropwizard.db.DataSourceFactory;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
+/**
+ * Configuration class for AgroConnect.
+ * Holds database settings (JDBC URL, username, password, pool settings, etc.).
+ */
+
 public class AgroConnectConfig extends Configuration {
     @Valid
     @NotNull
