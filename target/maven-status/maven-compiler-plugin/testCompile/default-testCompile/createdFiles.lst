@@ -1,0 +1,5 @@
+com\jendouba\agroconnect\resource\AuthResourceTest.class
+com\jendouba\agroconnect\resource\MessageResourceTest.class
+com\jendouba\agroconnect\resource\WeatherResourceTest.class
+com\jendouba\agroconnect\resource\CropResourceTest.class
+com\jendouba\agroconnect\resource\FarmResourceTest.class

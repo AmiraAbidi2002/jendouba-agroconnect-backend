@@ -7,18 +7,31 @@ server:
 
 
 # Database configuration
+#database:
+ # driverClass: org.postgresql.Driver    # PostgreSQL JDBC driver
+  #user: agro_user       # Database username
+  #password: 12373291
+  #url: jdbc:postgresql://localhost:5432/agroconnect      # JDBC connection URL
+ # properties:
+    #charSet: UTF-8         # Character encoding
+    #hibernate.hbm2ddl.auto: validate      # Validate schema on startup
+  #maxWaitForConnection: 1s
+ # validationQuery: "SELECT 1"       # SQL query to validate connection
+ # maxSize: 10
+ # minSize: 1
+
+
 database:
-  driverClass: org.postgresql.Driver    # PostgreSQL JDBC driver
-  user: agro_user       # Database username
-  password: 12373291
-  url: jdbc:postgresql://localhost:5432/agroconnect      # JDBC connection URL
+  driverClass: org.postgresql.Driver
+  user: agroconnect_5rgr_user
+  password: D142WtKIx8EOT4GuBYrYTRWWETZ72GIu
+  url: jdbc:postgresql://dpg-d2qtmrvdiees73dj78bg-a:5432/agroconnect_5rgr
   properties:
-    charSet: UTF-8         # Character encoding
-    hibernate.hbm2ddl.auto: validate      # Validate schema on startup
+    charSet: UTF-8
   maxWaitForConnection: 1s
-  validationQuery: "SELECT 1"       # SQL query to validate connection
-  maxSize: 10
-  minSize: 1
+  validationQuery: "SELECT 1"
+
+
 
 
 
