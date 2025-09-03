@@ -1,17 +1,14 @@
-# 1. use Java 17
-FROM openjdk:17-jdk-slim
-
-# 2. define  the working directory
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# 3. Copy the entire project into the container
-COPY . /app
+# Copy the pre-built JAR
+COPY target/*.jar app.jar
 
-# 4. Install Maven
-RUN apt-get update && apt-get install -y maven
+# Copy Dropwizard configuration
+COPY config.yml config.yml
 
-# 5. Build the project
-RUN mvn clean package
+# Expose Dropwizard port
+EXPOSE 8080
 
-# 6. Install Command to start the Dropwizard server
-CMD ["java", "-jar", "target/jendouba_agroconnect_backend-1.0-SNAPSHOT.jar", "server", "config.yml"]
+# Run the application
+CMD ["java", "-jar", "app.jar", "server", "config.yml"]

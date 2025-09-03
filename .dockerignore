@@ -1,4 +1,6 @@
 target/
-*.iml
+.mvnw
 .idea/
-.git/
+.vscode/
+.git
+*.log
