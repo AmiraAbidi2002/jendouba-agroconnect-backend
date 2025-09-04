@@ -54,7 +54,7 @@ public class CropResource {
         String fileName = UUID.randomUUID().toString() ;
 
         // Create the uploads folder if it does not exist
-        File uploadDir = new File("src/main/resources/static/uploads");
+        File uploadDir = new File("uploads");
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
@@ -309,7 +309,7 @@ public class CropResource {
     @Path("/image/{filename}")
     public Response getImage(@PathParam("filename") String filename) {
         InputStream in = getClass().getClassLoader()
-                .getResourceAsStream("static/uploads/" + filename);
+                .getResourceAsStream("uploads" + filename);
 
 
         if (in==null) {
