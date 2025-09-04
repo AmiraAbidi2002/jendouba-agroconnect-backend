@@ -42,7 +42,7 @@ public class CropDTO {
         this.harvest_date = c.getHarvest_date() != null ? DATE_FORMAT.format(c.getHarvest_date()) : null;
         this.availability = c.isAvailability();
         if (c.getImage_url() != null) {
-            this.img_url = "http://localhost:8080/api/crops/image/" + c.getImage_url();
+            this.img_url = "https://jendouba-agroconnect-backend-1.onrender.com/api/crops/image/" + c.getImage_url();
         } else {
             this.img_url = null;
         }
