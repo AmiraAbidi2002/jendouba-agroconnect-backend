@@ -107,4 +107,4 @@ java -jar target/agroconnect-backend-1.0-SNAPSHOT.jar server config.yml
 
 
 ## 8. Live Demo
-- Backend: https://jendouba-agroconnect-backend-1.onrender.com
+- Backend via Render: https://jendouba-agroconnect-backend-1.onrender.com
