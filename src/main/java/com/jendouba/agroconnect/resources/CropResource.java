@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -55,7 +54,7 @@ public class CropResource {
         String fileName = UUID.randomUUID().toString() ;
 
         // Create the uploads folder if it does not exist
-        File uploadDir = new File("uploads");
+        File uploadDir = new File("src/main/resources/static/uploads");
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
@@ -309,22 +308,22 @@ public class CropResource {
     @GET
     @Path("/image/{filename}")
     public Response getImage(@PathParam("filename") String filename) {
-        File file = new File("uploads/" + filename);
+        InputStream in = getClass().getClassLoader()
+                .getResourceAsStream("static/uploads/" + filename);
 
-        LOGGER.info("Loading image from path: " + file.getAbsolutePath());
 
-        if (!file.exists()) {
+        if (in==null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         StreamingOutput stream = output -> {
-            try (var in = Files.newInputStream(file.toPath())) {
+
                 byte[] buffer = new byte[1024];
                 int bytesRead;
                 while ((bytesRead = in.read(buffer)) != -1) {
                     output.write(buffer, 0, bytesRead);
                 }
-            }
+
         };
 
         String mimeType;
@@ -339,7 +338,7 @@ public class CropResource {
             mimeType = "image/jpeg";
         }
         return Response.ok(stream, mimeType)
-                .header("Content-Disposition", "inline; filename=\"" + file.getName() + "\"")
+                .header("Content-Disposition", "inline; filename=\"" )
                 .build();
     }
 
