@@ -102,3 +102,9 @@ java -jar target/agroconnect-backend-1.0-SNAPSHOT.jar server config.yml
 - Use a valid OpenWeather API key for weather endpoints.
 - JWT token must be included in the Authorization header for protected routes.
 - Input validation and error handling are implemented to ensure API stability.
+- The backend may take 30–60 seconds to wake up on Render free tier.
+  If you see "Application loading..." just wait a bit and refresh.
+
+
+## 8. Live Demo
+- Backend: https://jendouba-agroconnect-backend-1.onrender.com

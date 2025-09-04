@@ -19,6 +19,7 @@ import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.forms.MultiPartBundle;
 import io.dropwizard.hibernate.HibernateBundle;
 
+import jakarta.servlet.FilterRegistration;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -62,7 +63,7 @@ public class AgroConnectApplication extends Application<AgroConnectConfig> {
      * Configure application environment: register resources, authentication, CORS, static files, etc.
      */
     @Override
-    public void run(AgroConnectConfig agroConnectConfig, Environment environment) throws Exception {
+    public void run(AgroConnectConfig agroConnectConfig, Environment environment) {
 
         // Enable Jersey multipart support
         environment.jersey().register(MultiPartFeature.class);
@@ -119,7 +120,7 @@ public class AgroConnectApplication extends Application<AgroConnectConfig> {
                 .addMapping("/uploads/*");
 
         // Configure CORS to allow React frontend requests
-        var cors = environment.servlets().addFilter("CORS", org.eclipse.jetty.servlets.CrossOriginFilter.class);
+        final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", org.eclipse.jetty.servlets.CrossOriginFilter.class);
 
         cors.addMappingForUrlPatterns(EnumSet.allOf(jakarta.servlet.DispatcherType.class), true, "/*");
         cors.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
