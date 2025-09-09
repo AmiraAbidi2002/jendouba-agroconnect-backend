@@ -309,7 +309,9 @@ public class CropResource {
     @Path("/image/{filename}")
     @Produces({"image/png", "image/jpeg", "image/gif"})
     public Response getImage(@PathParam("filename") String filename) {
-        File file = new File("uploads" + filename);
+        File file = new File("uploads" , filename);
+        LOGGER.info("get image at: " + file.getAbsolutePath());
+
 
 
         if (!file.exists()) {
