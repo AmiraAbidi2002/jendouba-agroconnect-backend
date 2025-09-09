@@ -307,22 +307,23 @@ public class CropResource {
 
     @GET
     @Path("/image/{filename}")
+    @Produces({"image/png", "image/jpeg", "image/gif"})
     public Response getImage(@PathParam("filename") String filename) {
-        InputStream in = getClass().getClassLoader()
-                .getResourceAsStream("uploads" + filename);
+        File file = new File("uploads" + filename);
 
 
-        if (in==null) {
+        if (!file.exists()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         StreamingOutput stream = output -> {
-
+            try (InputStream in = new java.io.FileInputStream(file)) {
                 byte[] buffer = new byte[1024];
                 int bytesRead;
                 while ((bytesRead = in.read(buffer)) != -1) {
                     output.write(buffer, 0, bytesRead);
                 }
+            }
 
         };
 
